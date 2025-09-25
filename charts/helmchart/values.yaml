@@ -5,6 +5,64 @@
 replicaCount: 1
   # -- Replica count used to configure the number of replica pods that should be deployed and maintained.
 
+revisionHistoryLimit: 10 
+  # -- The number of old ReplicaSets to retain to allow rollback. Defaults to 10.
+
+progressDeadlineSeconds: 600 
+  # -- It defines how long (in seconds) Kubernetes will wait for your Deployment to make progress (e.g., for pods to become ready) before it marks the Deployment as failed.
+
+minReadySeconds: 30
+ # -- A newly created pod must stay in the Ready state for at least X seconds before it is considered available for traffic.
+paused: false 
+  # -- The paused field in a Deployment spec is used to temporarily pause and resume rollouts.
+
+priorityClassName: "high-priority"
+  # -- priorityClassName is the name of the PriorityClass to be used by the Pod.
+  # Use different classes per app tier:
+  # - * high-priority for databases or control-plane apps.
+  # - * medium-priority for business logic services.
+  # - * low-priority for batch jobs or test workloads.
+
+terminationGracePeriodSeconds: 30
+ # -- it tells Kubernetes how long to wait (in seconds) after sending a termination signal to a container before force-killing it.
+
+dnsPolicy: ClusterFirst 
+  # -- Specifies the DNS policy for the pod. One of 'ClusterFirstWithHostNet', 'ClusterFirst', 'Default' or 'None'. Defaults to 'ClusterFirst'.
+dnsConfig: 
+  # -- Specifies the DNS parameters of a pod.
+  enabled: false 
+    # -- Set to true to enable custom dnsConfig
+  nameservers: []
+  searches: []
+  options: []
+# dnsConfig: 
+      # nameservers:  
+      #   - 8.8.8.8
+      # searches: 
+      #   - default.svc.cluster.local
+      # options:  
+      #   - name: ndots
+      #     value: "2"
+
+restartPolicy: Always 
+  # -- restartPolicy specifies the restart policy for all containers within the pod. One of Always
+
+schedulerName: default-scheduler 
+  # -- schedulerName specifies the scheduler to be used for scheduling the pod. If not specified, the pod will be scheduled by the default scheduler.
+  # You can run your own scheduler(s) in the cluster with a unique name.
+hostNetwork: false
+  # -- hostNetwork specifies whether the pod should use the host's network namespace. When set to true, the pod will share the host's network interfaces and IP address.
+
+hostPID: false
+  # -- hostPID specifies whether the pod should use the host's PID namespace. When set to true, the pod will share the host's process ID namespace with the host.
+
+hostIPC: false
+  # -- hostIPC specifies whether the pod should use the host's IPC namespace. When set to true, the pod will share the host's IPC namespace with the host.
+
+shareProcessNamespace: false 
+  # -- shareProcessNamespace specifies whether the pod should share a single process namespace between all of its containers. When set to true, all containers in the pod will be able to see and interact with each other's processes.
+
+
 image:
     # -- Image to use for deploying, must support an entrypoint which creates users/databases from appropriate config files
     # -- The container image repository that should be used.  E.g 'nginx', 'gcr.io/kubernetes-helm/tiller'.       
@@ -59,6 +117,17 @@ podSecurityContext: {}
 
 securityContext: {}
       # -- securityContext is a map  that specified the privilege and access control settings for a Pod of Container. Security Context can be specified when the application requires additional access control permissions. securityContext takes precedence over podSecurityContext    
+      # securityContext:
+      #   runAsUser: 1000
+      #   runAsGroup: 3000
+      #   fsGroup: 2000
+      #   seLinuxOptions:
+      #     level: "s0:c123,c456"
+      #   sysctls:
+      #     - name: net.core.somaxconn
+      #       value: "1024"
+
+
 
 service: 
     # -- service is a map that specifies the  configuration for the Service resource that is created by the chart.
@@ -119,7 +188,7 @@ ingress:
 
 resource: 
   enabled: false
-resources: {}
+resources:
   # -- Requests and Limits to be specified for each pod.
   # limits: 
   #   cpu: 100m
@@ -146,6 +215,9 @@ poddisruptionbudget:
 
 nodeSelector: {}
     # -- nodeSelector specify restrictions on what node this pod should be scheduled on.
+
+topologySpreadConstraints: [] 
+    # -- topologySpreadConstraints is a list of topology spread constraints for the pod. This can be used to ensure that pods are evenly distributed across different failure domains, such as zones or nodes.
 
 tolerations: []
     # -- tolerations can be used to allow the pod to be scheduled on nodes with a specific taint.
@@ -260,6 +332,26 @@ healthCheckProbes:
     #   timeoutSeconds: 2
     #   failureThreshold: 3
     #   successThreshold: 1
+    #   startupProbe: # 
+    #     exec:
+    #       command:
+    #         - cat
+    #         - /tmp/healthy
+
+
+lifecycle:
+  # -- lifecycle hooks for containers
+  enabled: false
+
+# lifecycle:
+#   postStart:
+#     exec:
+#       command: ["/bin/sh", "-c", "echo PostStart hook executed"]
+#   preStop:
+#     exec:
+#       command: ["/bin/sh", "-c", "echo PreStop hook executed && sleep 10"]
+
+
 
 podLabels: {}
   # -- podLabels allows you to add custom labels to the pods.
@@ -271,3 +363,12 @@ deploymentStrategy: {}
   # rollingUpdate:
   #   maxSurge: 25%
   #   maxUnavailable: 25%
+hostAliases:
+  # --  Add custom entries to the pod's /etc/hosts file.
+  enabled: false 
+    # -- Set to true to enable hostAliases
+# hostAliases:
+#   # -- hostAliases is an optional list of hosts and IPs that will be injected into the pod's /etc/hosts file.
+#   - ip: "127.0.0.1"
+#     hostnames:
+#       - "local.example.com"

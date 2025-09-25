@@ -1,5 +1,33 @@
 replicaCount: 1
 
+revisionHistoryLimit: 10 
+progressDeadlineSeconds: 600 
+minReadySeconds: 30 
+paused: false 
+
+
+priorityClassName: high-priority # 
+terminationGracePeriodSeconds: 30 # 
+dnsPolicy: ClusterFirst # 
+
+dnsConfig: 
+  enabled: true
+  nameservers: # 
+    - 8.8.8.8
+  searches: # 
+    - default.svc.cluster.local
+  options: # 
+    - name: ndots
+      value: "2"
+restartPolicy: Always # 
+schedulerName: default-scheduler # 
+hostNetwork: false # 
+hostPID: false
+hostIPC: false
+shareProcessNamespace: false # 
+
+
+
 image:
   repository: nginx
   pullPolicy: IfNotPresent
@@ -22,6 +50,18 @@ commands:
   - /bin/sh
   - -c
   - echo "Hello, from CloudDrove!"; nginx -g 'daemon off;'
+
+
+
+lifecycle: 
+  enabled: true
+  postStart:
+    exec:
+      command: ["/bin/sh", "-c", "echo PostStart hook executed"]
+  preStop:
+    exec:
+      command: ["/bin/sh", "-c", "echo PreStop hook executed && sleep 10"]
+
 
 nameOverride: "" 
 
@@ -114,6 +154,14 @@ tolerations:
     value: "true"
     effect: "NoSchedule"
 
+topologySpreadConstraints: # 
+  - maxSkew: 1
+    topologyKey: "topology.kubernetes.io/zone"
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector:
+      matchLabels:
+        app: example
+
 affinity:
   nodeAffinity:
     requiredDuringSchedulingIgnoredDuringExecution:
@@ -179,3 +227,10 @@ statefulSets:
 
 deploymentStrategy:
   type: Recreate
+
+hostAliases:
+  enabled: true 
+  entries:
+    - ip: "127.0.0.1"
+      hostnames:
+      - "local.example.com"
