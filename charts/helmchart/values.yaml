@@ -188,7 +188,7 @@ ingress:
 
 resource: 
   enabled: false
-resources:
+resources: {}
   # -- Requests and Limits to be specified for each pod.
   # limits: 
   #   cpu: 100m
